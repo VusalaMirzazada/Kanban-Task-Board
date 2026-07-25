@@ -204,3 +204,24 @@ body {
 .task-card:hover {
   transform: translateY(-2px);
 }
+
+.task-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.task-card__edit,
+.task-card__delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.task-card__edit:hover,
+.task-card__delete:hover {
+  background: #F1F5F2;
+}
