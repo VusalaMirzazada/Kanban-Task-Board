@@ -19,6 +19,7 @@ function createTaskCard(task) {
   const card = document.createElement("div");
   card.className = "task-card";
   card.setAttribute("data-id", task.id);
+  card.setAttribute("draggable", "true");   
 
   card.innerHTML = `
     <span class="task-card__priority task-card__priority--${task.priority}">${task.priority}</span>
@@ -49,6 +50,7 @@ function renderTasks() {
   });
 
   updateCounts();
+  attachDragEvents();
 }
 
 function updateCounts() {
@@ -68,11 +70,16 @@ function closeModal() {
   taskModal.hidden = true;
   taskForm.reset();
   editingTaskId = null;
+
+  document.getElementById("modalTitle").textContent="Yeni Tapşırıq";
 }
 
 addTaskBtn.addEventListener("click", function () {
   editingTaskId = null;
   taskForm.reset();
+
+  document.getElementById("modalTitle").textContent = "Yeni Tapşırıq";
+  
   openModal();
 });
 
@@ -87,6 +94,7 @@ taskForm.addEventListener("submit", function (e) {
     description: document.getElementById("taskDesc").value,
     priority: document.getElementById("taskPriority").value,
     date: document.getElementById("taskDate").value
+
   };
 
   if (editingTaskId === null) {
@@ -112,16 +120,60 @@ document.querySelector(".board").addEventListener("click", function (e) {
     document.getElementById("taskDesc").value = task.description;
     document.getElementById("taskPriority").value = task.priority;
     document.getElementById("taskDate").value = task.date;
+    document.getElementById("modalTitle").textContent = "Tapşırığı Redaktə Et";
 
     openModal();
   }
 
   if (e.target.classList.contains("task-card__delete")) {
     const index = tasks.findIndex(function (t) { return t.id === id; });
+  
+    if (index !== -1) {
     tasks.splice(index, 1);
     renderTasks();
+  
   }
+}
+
 });
 
 
-renderTasks();
+let draggedTaskId = null;
+
+function attachDragEvents() {
+  document.querySelectorAll(".task-card").forEach(function (card) {
+    card.addEventListener("dragstart", function () {
+      draggedTaskId = Number(card.getAttribute("data-id"));
+      card.classList.add("task-card--dragging");
+    });
+
+    card.addEventListener("dragend", function () {
+      card.classList.remove("task-card--dragging");
+    });
+  });
+
+  document.querySelectorAll(".board__tasks").forEach(function (column) {
+    column.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      column.classList.add("board__tasks--drag-over");
+    });
+
+    column.addEventListener("dragleave", function () {
+      column.classList.remove("board__tasks--drag-over");
+    });
+
+    column.addEventListener("drop", function (e) {
+      e.preventDefault();
+      column.classList.remove("board__tasks--drag-over");
+
+      const task = tasks.find(function (t) { return t.id === draggedTaskId; });
+      const newStatus = column.parentElement.getAttribute("data-status");
+      
+      if (task) {
+      task.status = newStatus;
+      renderTasks();
+      }
+    });
+  });
+}
+renderTasks ();

@@ -225,3 +225,34 @@ body {
 .task-card__delete:hover {
   background: #F1F5F2;
 }
+
+.task-card__priority{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:6px;
+  color:white;
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.task-card__priority--high{
+  background:#dc2626;
+}
+
+.task-card__priority--medium{
+  background:#f59e0b;
+}
+
+.task-card__priority--low{
+  background:#16a34a;
+}
+
+.task-card--dragging {
+  opacity: 0.5;
+}
+
+.board__tasks--drag-over {
+  background: #97dda3;
+  border-radius: 8px;
+}
