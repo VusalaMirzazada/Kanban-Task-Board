@@ -1,9 +1,19 @@
-const tasks = [
+function loadTasks () {
+  const saved = localStorage.getItem("kanbanTasks");
+  if (saved) { 
+    return JSON.parse(saved);}
+  return [
   { id: 1, title: "HTML Layout", description: "Əsas struktur", priority: "high", date: "2026-07-20", status: "todo" },
   { id: 2, title: "CSS Dizaynı", description: "Rənglər və düzülüş", priority: "medium", date: "2026-07-22", status: "inprogress" },
   { id: 3, title: "JavaScript Render", description: "Dinamik massiv render", priority: "low", date: "2026-07-18", status: "done" }
 ];
+}
 
+function saveTasks() {
+  localStorage.setItem("kanbanTasks",JSON.stringify(tasks));
+}
+
+const tasks = loadTasks();
 let editingTaskId = null;
 
 const todoTasks = document.getElementById("todoTasks");
@@ -51,6 +61,7 @@ function renderTasks() {
 
   updateCounts();
   attachDragEvents();
+  saveTasks();
 }
 
 function updateCounts() {
