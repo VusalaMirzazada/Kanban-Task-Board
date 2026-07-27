@@ -10,7 +10,7 @@ function loadTasks () {
 }
 
 function saveTasks() {
-  localStorage.setItem("kanbanTasks",JSON.stringify(tasks));
+  localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
 }
 
 const tasks = loadTasks();
@@ -50,7 +50,9 @@ function renderTasks() {
   progressTasks.innerHTML = "";
   doneTasks.innerHTML = "";
 
-  tasks.forEach(function (task) {
+  const filteredTasks=getFilteredTasks();
+
+  filteredTasks.forEach(function (task) {
     const card = createTaskCard(task);
     const targetColumn = task.status === "todo" ? todoTasks
       : task.status === "inprogress" ? progressTasks
@@ -187,4 +189,24 @@ function attachDragEvents() {
     });
   });
 }
+
+const searchInput = document.getElementById("searchInput");
+const priorityFilter = document.getElementById("priorityFilter");
+
+function getFilteredTasks() {
+  const searchText = searchInput.value.toLowerCase ();
+  const selectedPriority = priorityFilter.value;
+
+  return tasks.filter(function (task) {
+    const matchesSearch = task.title.toLowerCase().includes (searchText) || task.description.toLowerCase().includes(searchText);
+    
+   const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;                       
+  
+   return matchesSearch && matchesPriority;
+  });
+}
+
+searchInput.addEventListener("input", renderTasks);
+priorityFilter.addEventListener("change", renderTasks);
+
 renderTasks ();
