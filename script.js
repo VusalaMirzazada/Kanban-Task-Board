@@ -1,4 +1,4 @@
-function loadTasks () {
+function loadTasks() {
   const saved = localStorage.getItem("kanbanTasks");
   if (saved) { 
     return JSON.parse(saved);}
@@ -31,16 +31,43 @@ function createTaskCard(task) {
   card.setAttribute("data-id", task.id);
   card.setAttribute("draggable", "true");   
 
-  card.innerHTML = `
-    <span class="task-card__priority task-card__priority--${task.priority}">${task.priority}</span>
-    <h3 class="task-card__title">${task.title}</h3>
-    <p class="task-card__desc">${task.description}</p>
-    <div class="task-card__date">${task.date}</div>
-    <div class="task-card__actions">
-      <button class="task-card__edit" data-id="${task.id}">✏️</button>
-      <button class="task-card__delete" data-id="${task.id}">🗑️</button>
-    </div>
-  `;
+  const priority = document.createElement("span");
+  priority.className = `task-card__priority task-card__priority--${task.priority}`;
+  priority.textContent = task.priority;
+
+  const title = document.createElement("h3");
+  title.className = "task-card__title";
+  title.textContent = task.title;
+
+  const desc = document.createElement("p");
+  desc.className = "task-card__desc";
+  desc.textContent = task.description;
+
+  const date = document.createElement("div");
+  date.className = "task-card__date";
+  date.textContent = task.date;
+
+  const actions = document.createElement("div");
+  actions.className = "task-card__actions";
+
+  const editBtn = document.createElement("button");
+  editBtn.className = "task-card__edit";
+  editBtn.setAttribute("data-id", task.id);
+  editBtn.textContent = "✏️";
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "task-card__delete";
+  deleteBtn.setAttribute("data-id", task.id);
+  deleteBtn.textContent = "🗑️";
+
+  actions.appendChild(editBtn);
+  actions.appendChild(deleteBtn);
+
+  card.appendChild(priority);
+  card.appendChild(title);
+  card.appendChild(desc);
+  card.appendChild(date);
+  card.appendChild(actions);
 
   return card;
 }
@@ -50,21 +77,28 @@ function renderTasks() {
   progressTasks.innerHTML = "";
   doneTasks.innerHTML = "";
 
-  const filteredTasks=getFilteredTasks();
+  const filteredTasks = getFilteredTasks();
 
-  filteredTasks.forEach(function (task) {
-    const card = createTaskCard(task);
-    const targetColumn = task.status === "todo" ? todoTasks
-      : task.status === "inprogress" ? progressTasks
-      : doneTasks;
+  if (filteredTasks.length === 0) {
+    todoTasks.innerHTML = "<p class='empty-state'>Tapşırıq yoxdur</p>";
+    progressTasks.innerHTML = "<p class='empty-state'>Tapşırıq yoxdur</p>";
+    doneTasks.innerHTML = "<p class='empty-state'>Tapşırıq yoxdur</p>";
+  } else {
+    filteredTasks.forEach(function (task) {
+      const card = createTaskCard(task);
+      const targetColumn = task.status === "todo" ? todoTasks
+        : task.status === "inprogress" ? progressTasks
+        : doneTasks;
 
-    targetColumn.appendChild(card);
-  });
+      targetColumn.appendChild(card);
 
+    });
+  }
   updateCounts();
   attachDragEvents();
   saveTasks();
 }
+
 
 function updateCounts() {
   document.querySelectorAll(".board__column").forEach(function (column) {
@@ -84,7 +118,7 @@ function closeModal() {
   taskForm.reset();
   editingTaskId = null;
 
-  document.getElementById("modalTitle").textContent="Yeni Tapşırıq";
+  document.getElementById("modalTitle").textContent = "Yeni Tapşırıq";
 }
 
 addTaskBtn.addEventListener("click", function () {
@@ -107,8 +141,18 @@ taskForm.addEventListener("submit", function (e) {
     description: document.getElementById("taskDesc").value,
     priority: document.getElementById("taskPriority").value,
     date: document.getElementById("taskDate").value
-
   };
+
+  const duplicateTask = tasks.find(function (task) {
+    return (
+      task.title.toLowerCase() === formData.title.toLowerCase() && editingTaskId === null
+    );
+  });
+
+   if (duplicateTask) {
+    alert("Bu adda tapşırıq artıq mövcuddur.");
+    return;
+}
 
   if (editingTaskId === null) {
     tasks.push({ id: Date.now(), status: "todo", ...formData });
@@ -142,10 +186,15 @@ document.querySelector(".board").addEventListener("click", function (e) {
     const index = tasks.findIndex(function (t) { return t.id === id; });
   
     if (index !== -1) {
-    tasks.splice(index, 1);
-    renderTasks();
+
+      const confirmDelete = confirm("Bu tapşırığı silmək istədiyinizə əminsinizmi?");
+   
+      if (confirmDelete) {
+      tasks.splice(index, 1);
+      renderTasks();
   
   }
+}
 }
 
 });
@@ -200,7 +249,7 @@ function getFilteredTasks() {
   return tasks.filter(function (task) {
     const matchesSearch = task.title.toLowerCase().includes (searchText) || task.description.toLowerCase().includes(searchText);
     
-   const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;                       
+    const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;                       
   
    return matchesSearch && matchesPriority;
   });
@@ -209,4 +258,4 @@ function getFilteredTasks() {
 searchInput.addEventListener("input", renderTasks);
 priorityFilter.addEventListener("change", renderTasks);
 
-renderTasks ();
+renderTasks();
