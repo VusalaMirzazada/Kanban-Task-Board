@@ -96,7 +96,6 @@ function renderTasks() {
   }
   updateCounts();
   attachDragEvents();
-  saveTasks();
 }
 
 
@@ -137,8 +136,8 @@ taskForm.addEventListener("submit", function (e) {
   e.preventDefault();
 
   const formData = {
-    title: document.getElementById("taskTitle").value,
-    description: document.getElementById("taskDesc").value,
+    title: document.getElementById("taskTitle").value.trim(),
+    description: document.getElementById("taskDesc").value.trim(),
     priority: document.getElementById("taskPriority").value,
     date: document.getElementById("taskDate").value
   };
@@ -160,7 +159,8 @@ taskForm.addEventListener("submit", function (e) {
     const task = tasks.find(function (t) { return t.id === editingTaskId; });
     Object.assign(task, formData);
   }
-
+   
+  saveTasks();
   renderTasks();
   closeModal();
 });
@@ -191,6 +191,7 @@ document.querySelector(".board").addEventListener("click", function (e) {
    
       if (confirmDelete) {
       tasks.splice(index, 1);
+      saveTasks();
       renderTasks();
   
   }
@@ -233,6 +234,7 @@ function attachDragEvents() {
       
       if (task) {
       task.status = newStatus;
+      saveTasks();
       renderTasks();
       }
     });
