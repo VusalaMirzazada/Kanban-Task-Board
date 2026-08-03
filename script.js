@@ -1,16 +1,26 @@
 function loadTasks() {
-  const saved = localStorage.getItem("kanbanTasks");
-  if (saved) { 
-    return JSON.parse(saved);}
+  try {
+    const saved = localStorage.getItem("kanbanTasks");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error("localStorage-dan oxumaq mümkün olmadı:", error);
+  }
+
   return [
-  { id: 1, title: "HTML Layout", description: "Əsas struktur", priority: "high", date: "2026-07-20", status: "todo" },
-  { id: 2, title: "CSS Dizaynı", description: "Rənglər və düzülüş", priority: "medium", date: "2026-07-22", status: "inprogress" },
-  { id: 3, title: "JavaScript Render", description: "Dinamik massiv render", priority: "low", date: "2026-07-18", status: "done" }
-];
+    { id: 1, title: "HTML Layout", description: "Əsas struktur", priority: "high", date: "2026-07-20", status: "todo" },
+    { id: 2, title: "CSS Dizaynı", description: "Rənglər və düzülüş", priority: "medium", date: "2026-07-22", status: "inprogress" },
+    { id: 3, title: "JavaScript Render", description: "Dinamik massiv render", priority: "low", date: "2026-07-18", status: "done" }
+  ];
 }
 
 function saveTasks() {
-  localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
+  try {
+    localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
+  } catch (error) {
+    console.error("localStorage-a yazmaq mümkün olmadı:", error);
+  }
 }
 
 const tasks = loadTasks();
@@ -95,7 +105,6 @@ function renderTasks() {
     });
   }
   updateCounts();
-  attachDragEvents();
 }
 
 
@@ -144,7 +153,7 @@ taskForm.addEventListener("submit", function (e) {
 
   const duplicateTask = tasks.find(function (task) {
     return (
-      task.title.toLowerCase() === formData.title.toLowerCase() && editingTaskId === null
+      task.title.toLowerCase() === formData.title.toLowerCase() && task.id !== editingTaskId
     );
   });
 
@@ -203,43 +212,43 @@ document.querySelector(".board").addEventListener("click", function (e) {
 
 let draggedTaskId = null;
 
-function attachDragEvents() {
-  document.querySelectorAll(".task-card").forEach(function (card) {
-    card.addEventListener("dragstart", function () {
-      draggedTaskId = Number(card.getAttribute("data-id"));
-      card.classList.add("task-card--dragging");
-    });
+document.querySelector(".board").addEventListener("dragstart", function (e) {
+  if (e.target.classList.contains("task-card")) {
+    draggedTaskId = Number(e.target.getAttribute("data-id"));
+    e.target.classList.add("task-card--dragging");
+  }
+});
 
-    card.addEventListener("dragend", function () {
-      card.classList.remove("task-card--dragging");
-    });
+document.querySelector(".board").addEventListener("dragend", function (e) {
+  if (e.target.classList.contains("task-card")) {
+    e.target.classList.remove("task-card--dragging");
+  }
+});
+
+document.querySelectorAll(".board__tasks").forEach(function (column) {
+  column.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    column.classList.add("board__tasks--drag-over");
   });
 
-  document.querySelectorAll(".board__tasks").forEach(function (column) {
-    column.addEventListener("dragover", function (e) {
-      e.preventDefault();
-      column.classList.add("board__tasks--drag-over");
-    });
+  column.addEventListener("dragleave", function () {
+    column.classList.remove("board__tasks--drag-over");
+  });
 
-    column.addEventListener("dragleave", function () {
-      column.classList.remove("board__tasks--drag-over");
-    });
+  column.addEventListener("drop", function (e) {
+    e.preventDefault();
+    column.classList.remove("board__tasks--drag-over");
 
-    column.addEventListener("drop", function (e) {
-      e.preventDefault();
-      column.classList.remove("board__tasks--drag-over");
+    const task = tasks.find(function (t) { return t.id === draggedTaskId; });
+    const newStatus = column.parentElement.getAttribute("data-status");
 
-      const task = tasks.find(function (t) { return t.id === draggedTaskId; });
-      const newStatus = column.parentElement.getAttribute("data-status");
-      
-      if (task) {
+    if (task) {
       task.status = newStatus;
       saveTasks();
       renderTasks();
-      }
-    });
+    }
   });
-}
+});
 
 const searchInput = document.getElementById("searchInput");
 const priorityFilter = document.getElementById("priorityFilter");
